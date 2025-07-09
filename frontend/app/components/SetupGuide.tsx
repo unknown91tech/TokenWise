@@ -487,7 +487,7 @@ export function SetupGuide() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
               <CheckCircle2 className="h-5 w-5" />
-              Setup Complete! What's Next?
+              Setup Complete! Whats Next?
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

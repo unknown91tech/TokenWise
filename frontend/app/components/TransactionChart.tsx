@@ -133,25 +133,6 @@ export function TransactionChart() {
   const [timeFilter, setTimeFilter] = useState<'24h' | '7d' | '30d' | 'all'>('24h');
   const [systemStatus, setSystemStatus] = useState({ hasData: false, isHealthy: false });
 
-  useEffect(() => {
-    loadStats();
-    checkSystemHealth();
-  }, [timeFilter]);
-
-  const checkSystemHealth = async () => {
-    try {
-      const health = await apiClient.getHealth();
-      const walletStats = await apiClient.getWalletStats();
-      
-      setSystemStatus({
-        hasData: walletStats.totalTransactions > 0,
-        isHealthy: health.status === 'healthy'
-      });
-    } catch (err) {
-      setSystemStatus({ hasData: false, isHealthy: false });
-    }
-  };
-
   const loadStats = async () => {
     try {
       setLoading(true);
@@ -180,6 +161,25 @@ export function TransactionChart() {
       setError(err instanceof Error ? err.message : 'Failed to load stats');
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
+    checkSystemHealth();
+  }, [loadStats, timeFilter]);
+
+  const checkSystemHealth = async () => {
+    try {
+      const health = await apiClient.getHealth();
+      const walletStats = await apiClient.getWalletStats();
+      
+      setSystemStatus({
+        hasData: walletStats.totalTransactions > 0,
+        isHealthy: health.status === 'healthy'
+      });
+    } catch (err) {
+      setSystemStatus({ hasData: false, isHealthy: false });
     }
   };
 
@@ -310,13 +310,13 @@ export function TransactionChart() {
   }
 
   // Prepare data for charts
-  const transactionTypeData = [
+  const transactionTypeData = stats ? [
     { name: 'Buys', value: stats.totalBuys, color: '#10B981', percentage: (stats.totalBuys / stats.totalTransactions * 100) },
     { name: 'Sells', value: stats.totalSells, color: '#EF4444', percentage: (stats.totalSells / stats.totalTransactions * 100) },
     { name: 'Transfers', value: stats.totalTransfers, color: '#3B82F6', percentage: (stats.totalTransfers / stats.totalTransactions * 100) },
-  ].filter(item => item.value > 0);
+  ].filter(item => item.value > 0) : [];
 
-  const protocolData = Object.entries(stats.protocolBreakdown || {})
+  const protocolData = stats && stats.protocolBreakdown ? Object.entries(stats.protocolBreakdown)
     .map(([protocol, count]) => ({
       name: protocol,
       value: count,
@@ -324,11 +324,11 @@ export function TransactionChart() {
       percentage: (count / stats.totalTransactions * 100),
     }))
     .filter(item => item.value > 0)
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => b.value - a.value) : [];
 
-  const hourlyData = stats.hourlyActivity || [];
+  const hourlyData = stats && stats.hourlyActivity ? stats.hourlyActivity : [];
 
-  const buyToSellRatio = stats.totalSells > 0 ? stats.totalBuys / stats.totalSells : stats.totalBuys;
+  const buyToSellRatio = stats ? (stats.totalSells > 0 ? stats.totalBuys / stats.totalSells : stats.totalBuys) : 0;
   const sentiment = buyToSellRatio > 1.2 ? 'Bullish' : buyToSellRatio < 0.8 ? 'Bearish' : 'Neutral';
   const sentimentColor = sentiment === 'Bullish' ? 'text-green-600' : 
                         sentiment === 'Bearish' ? 'text-red-600' : 'text-yellow-600';
@@ -374,7 +374,7 @@ export function TransactionChart() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Total Transactions</p>
-                <p className="text-3xl font-bold">{formatNumber(stats.totalTransactions)}</p>
+                <p className="text-3xl font-bold">{stats ? formatNumber(stats.totalTransactions) : '-'}</p>
                 <Badge variant="outline" className="text-xs">
                   {timeFilter === 'all' ? 'All time' : `Last ${timeFilter}`}
                 </Badge>
@@ -391,9 +391,9 @@ export function TransactionChart() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Total Buys</p>
-                <p className="text-3xl font-bold text-green-600">{formatNumber(stats.totalBuys)}</p>
+                <p className="text-3xl font-bold text-green-600">{stats ? formatNumber(stats.totalBuys) : '-'}</p>
                 <Badge variant="default" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                  {formatPercentage(stats.totalBuys, stats.totalTransactions)}
+                  {stats ? formatPercentage(stats.totalBuys, stats.totalTransactions) : '-'}
                 </Badge>
               </div>
               <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
@@ -408,9 +408,9 @@ export function TransactionChart() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Total Sells</p>
-                <p className="text-3xl font-bold text-red-600">{formatNumber(stats.totalSells)}</p>
+                <p className="text-3xl font-bold text-red-600">{stats ? formatNumber(stats.totalSells) : '-'}</p>
                 <Badge variant="destructive" className="text-xs">
-                  {formatPercentage(stats.totalSells, stats.totalTransactions)}
+                  {stats ? formatPercentage(stats.totalSells, stats.totalTransactions) : '-'}
                 </Badge>
               </div>
               <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
@@ -650,7 +650,7 @@ export function TransactionChart() {
       </div>
 
       {/* Top Active Wallets */}
-      {stats.topActiveWallets && stats.topActiveWallets.length > 0 && (
+      {stats && stats.topActiveWallets && stats.topActiveWallets.length > 0 && (
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -674,7 +674,7 @@ export function TransactionChart() {
                         {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
                       </code>
                       <p className="text-xs text-muted-foreground">
-                        {formatPercentage(wallet.count, stats.totalTransactions)} of total
+                        {stats ? formatPercentage(wallet.count, stats.totalTransactions) : '-'} of total
                       </p>
                     </div>
                   </div>

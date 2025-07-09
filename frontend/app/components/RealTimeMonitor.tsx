@@ -2,6 +2,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+
+// Extend the Window interface to include 'ws'
+declare global {
+  interface Window {
+    ws?: WebSocket;
+  }
+}
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -240,7 +247,7 @@ export function RealTimeMonitor() {
           });
           
           // Mark new transactions for highlighting
-          const newIds = new Set(newTransactions.map((tx: any) => tx.signature));
+          const newIds = new Set<string>(newTransactions.map((tx: any) => tx.signature));
           setNewTransactionIds(newIds);
           setTimeout(() => setNewTransactionIds(new Set()), 3000);
           

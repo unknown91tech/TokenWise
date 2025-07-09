@@ -184,7 +184,7 @@ export function Dashboard() {
                   <Settings className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">Welcome to TokenWise!</h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Let's get you started by setting up your wallet monitoring and historical data collection.
+                    Lets get you started by setting up your wallet monitoring and historical data collection.
                   </p>
                   <div className="space-y-3">
                     <Link href="/setup">

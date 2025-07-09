@@ -71,7 +71,7 @@ export interface ApiResponse<T> {
 }
 
 export interface WebSocketMessage {
-  type: 'wallet_activity' | 'monitoring_started' | 'monitoring_stopped' | 'sync_completed' | 'subscribed' | 'pong' | 'error';
+  type: 'wallet_activity' | 'monitoring_started' | 'monitoring_stopped' | 'sync_completed' | 'subscribed' | 'pong' | 'error' | 'status_update' | 'recent_transactions';
   data?: any;
   message?: string;
 }

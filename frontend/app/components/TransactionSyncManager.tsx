@@ -20,7 +20,12 @@ import {
 
 export function TransactionSyncManager() {
   const [isLoading, setIsLoading] = useState(false);
-  const [syncStatus, setSyncStatus] = useState({
+  const [syncStatus, setSyncStatus] = useState<{
+    walletCount: number;
+    totalTransactions: number;
+    lastSync: string | null;
+    isMonitoring: boolean;
+  }>({
     walletCount: 0,
     totalTransactions: 0,
     lastSync: null,
