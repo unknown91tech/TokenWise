@@ -481,7 +481,7 @@ app.get('/', (req, res) => {
       monitoring: '/api/monitoring',
     },
     websocket: {
-      url: `ws://localhost:${WS_PORT}`,
+      url: `wss://tokenwise-1.onrender.com:${WS_PORT}`,
       supportedMessages: [
         'ping',
         'subscribe', 
