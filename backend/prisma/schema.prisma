@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Wallet {
+  id          String   @id @default(cuid())
+  address     String   @unique
+  balance     Float    @default(0)
+  tokenAmount Float    @default(0)
+  rank        Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  transactions Transaction[]
+  
+  @@map("wallets")
+}
+
+model Transaction {
+  id            String      @id @default(cuid())
+  walletId      String
+  walletAddress String
+  signature     String      @unique
+  type          TransactionType
+  amount        Float
+  tokenAmount   Float
+  protocol      String?
+  timestamp     DateTime
+  blockTime     DateTime?
+  slot          BigInt?
+  fee           Float?
+  status        TransactionStatus @default(PENDING)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  wallet        Wallet      @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  @@map("transactions")
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+// Index for better performance
+model TokenInfo {
+  id              String   @id @default(cuid())
+  contractAddress String   @unique
+  name            String?
+  symbol          String?
+  decimals        Int?
+  totalSupply     Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("token_info")
+}
+
+model MonitoringSession {
+  id        String   @id @default(cuid())
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  status    String   @default("ACTIVE")
+  
+  // Statistics
+  totalTransactions Int @default(0)
+  totalBuys        Int @default(0)
+  totalSells       Int @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("monitoring_sessions")
+}
